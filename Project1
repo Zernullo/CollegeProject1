@@ -1,0 +1,482 @@
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Scanner;
+import java.util.Arrays;
+
+
+/**
+* <CSC 1351>
+* 
+* CSC 1351 Programming Project No <1>
+* Section <2>
+* 
+* @author <Daniel Guo>
+* @since <March 17, 2024>
+* 
+*/
+public class Prog01_aOrderedList {//Beginning of class Prog01_aOrderedList -- Main class
+	/**
+	* <Main Method Read File, add and delete elements, print overall>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public static void main(String [] arg) throws FileNotFoundException {							//main method
+		
+		Scanner scanner = getInputFile("Enter input filename: ");									//Declare GetInputFile method
+		aOrderedList list = new aOrderedList();														//Declare aOrderedList Class
+		Car car;																					//Declare Car class
+		
+		
+		while(scanner.hasNextLine()) {																//Reads the File
+			String readFile = scanner.nextLine();													//
+			String[] split = readFile.split(",");													//split the String into an array using ","
+
+			if(split[0].equals("A")) {																//purpose is to determine letter A from D in the file
+				car = new Car(split[1], Integer.parseInt(split[2]), Integer.parseInt(split[3]));	//input the variables to Class Car
+				list.add(car);																		//add car into aOrderedList
+			}
+			
+			else if(split[0].equals("D")) {															//purpose is to determine letter A from D in the file
+				if(split.length == 3) {																//If array have 3 element - D,Make,Year
+					car = new Car(split[1], Integer.parseInt(split[2]), 0);							//put variables into Car Class
+					list.reset();																	//reset curr to -1
+					while(list.hasNext()) {															//A loop which runs until there is no next line
+						Car deletion = (Car) list.next();											//Store element
+						if(deletion.compareTo(car) == 0) {											//compare element the same
+							list.remove();															//remove the element from the list
+							break;																	//
+						}
+					}
+				}
+
+				else if(split.length == 2) {											//Array have 2 element - D,index
+					car = new Car(split[1], 0, 0);										//variables into car class
+					int index = 0;														//initialize variable
+			        for (int i = 0; i < list.size(); i++) {								//loop till the Car size
+			            if (list.get(i) != null && list.get(i).compareTo(car) == 0) {	//Compare the two elements
+			                index = i;													//set index to the array index if element the same
+			                break;														//
+			            }																//
+			        }																	//
+			        list.remove(index);													//removes the element
+				}																		//
+			}
+		}				//End of loop
+		scanner.close();//Close Scanner
+		
+		PrintWriter print = getOutputFile("Enter output filename: ");					//Get Output File name
+		print.println("Numbers of cars: " + list.size());								//Get the amount of Cars
+		for(int i = 0; i < list.size(); i++) {											//
+			String[] newPrint = list.get(i).toString().split(",");						//Split the toString
+			String[] fixing = newPrint[2].split(";");									//
+			print.println(newPrint[0] + "\n" + newPrint[1] + "\n" + fixing[0] + "\n");	//
+		}																				//
+		print.close();																	//Close PrintWriter
+	}																					//end of main method
+
+	/**
+	* <Find Filename>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public static Scanner getInputFile(String UserPrompt) throws FileNotFoundException{
+				
+		Scanner name = new Scanner(System.in);			//
+		System.out.println(UserPrompt);					//ask the user to input the file name
+		String fileName= name.nextLine();				//Store input
+		File inputFile = new File(fileName);			//Read input
+		
+		
+		while(!(inputFile).exists()) {																					//Find if file name exist
+			System.out.println("File specified <" + fileName+ "> does not exist. Would you like to continue? <Y/N>");	//
+			String check = name.nextLine();																				//
+			if (check.equalsIgnoreCase("Y")) {																			//
+				System.out.println(UserPrompt);																			//
+				fileName = name.nextLine();																				//force to input the correct file
+				inputFile = new File(fileName);																			//
+				continue;																								//
+			}																											//
+			else {																										//
+				throw new FileNotFoundException();																		//
+			}																											//
+		}																												//
+		return new Scanner(inputFile);																					//
+	}
+	
+	/**
+	* <Find filename and overwrite it>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public static PrintWriter getOutputFile(String UserPrompt) throws FileNotFoundException{
+		
+		Scanner name = new Scanner(System.in);			//
+		System.out.println(UserPrompt);					//ask the user to input the file name
+		String fileName = name.nextLine();				//
+		File OutputFile = new File(fileName);			//Read File
+		
+		while(!(OutputFile).exists()) {																					//Check to see file exist
+			System.out.println("File specified <" + fileName+ "> does not exist. Would you like to continue? <Y/N>");	//
+			String check = name.nextLine();																				//
+			if (check.equalsIgnoreCase("Y")) {																			//
+				System.out.println(UserPrompt);																			//
+				fileName = name.nextLine();																				//force to input the correct file
+				OutputFile = new File(fileName);																		//
+				continue;																								//
+			}																											//
+			else {																										//
+				name.close();																							//
+				throw new FileNotFoundException();																		//
+			}																											//
+		}																												//
+		PrintWriter writer = new PrintWriter(OutputFile);	//OverWrite the File
+		name.close();										//
+		return writer;										//return the overwritten file
+	}
+}//end of Class Prog01_aOrderedList
+
+
+/**
+* <CSC 1351>
+* 
+* CSC 1351 Programming Project No <1>
+* Section <2>
+* 
+* @author <Daniel Guo>
+* @since <March 17, 2024>
+* 
+*/
+class Car implements Comparable<Car>{//Beginning of class Car
+	
+	private String make; 	//
+	private int year; 		//Initialize variables
+	private int price;		//
+	
+	/**
+	* <Constructor of Car>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public Car(String Make, int Year, int Price) {	//
+		this.make = Make;							//
+		this.year = Year;							//Constructor
+		this.price = Price;							//
+	}												//
+	/**
+	* <return make>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public String getMake() {	//Return Make
+		return this.make;
+	}
+	/**
+	* <return year>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public int getYear() {	//Return Year
+		return this.year;
+	}
+	/**
+	* <return price>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public int getPrice() {	//Return Price
+		return this.price;
+	}
+	/**
+	* <compare the element so they can be sorted>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public int compareTo(Car other) {
+		if(make.compareTo(other.make) == 0) {			//If Make equals
+			return Integer.compare(year, other.year);	//return compare Year
+		}
+		else {									//else return compare make
+			return make.compareTo(other.make);	//
+		}
+	}
+	/**
+	* <Print method>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	@Override
+	public String toString() {															//print statement method
+		return ("Make: \t" + make + ",Year: \t" + year + ",Price: \t$" + price + ";");	//
+
+	}
+}//end of class Car
+
+
+/**
+* <CSC 1351>
+* 
+* CSC 1351 Programming Project No <1>
+* Section <2>
+* 
+* @author <Daniel Guo>
+* @since <March 17, 2024>
+* 
+*/
+class aOrderedList {//Beginning if class aOrderedList
+	
+	final int SIZEINCREMENTS = 20; 	//size of increments for increasing ordered list
+									//
+	private Comparable[] oList; 	//the ordered list
+	private int listSize; 			//the size of the ordered list
+	private int numObjects; 		//the number of objects in the ordered list
+									// 
+	private int curr;				//index of current element accessed via iterator methods
+	 								//
+	/**
+	* <Constructor of aOrderedList>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public aOrderedList() {             //
+		this.numObjects = 0;			//
+		this.listSize = SIZEINCREMENTS;	//the constructor of aOrderedList
+		this.oList = new Car[listSize];	//
+	}									//
+	/**
+	* <add element from car to oList array>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public void add(Comparable newObject) {														//add Car element into oList array
+	    if (this.numObjects == this.listSize) {													//increase array size if full
+	        arraySize();																		//
+	    }																						//
+
+	    if (this.numObjects == 0 || newObject.compareTo(this.oList[this.numObjects - 1]) >= 0) {//If list is empty or newObject is 
+	    	this.oList[this.numObjects] = newObject;											//greater than or equal to the last element
+	    } 																						//
+	    
+	    else {																	//
+	        int index = this.numObjects - 1;									//initialize index
+	        while (index >= 0 && newObject.compareTo(this.oList[index]) < 0) {	//Compare and if less than 0
+	            this.oList[index + 1] = this.oList[index];						//shift it toward right
+	            index--;														//decrement index
+	        }																	//
+	        this.oList[index + 1] = newObject;									// Insert newObject at correct position
+	    }																		//
+	    this.numObjects++;														//numObjects in the array goes up
+	}																			//
+	/**
+	* <increase the size of the array>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public void arraySize() {											//
+		this.oList = Arrays.copyOf(this.oList, (2 * this.oList.length));//Copy and increase original size of the array
+	}																	//
+	/**
+	* <Print method and overrides Car Class>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	@Override																//Overrides Car class toString method
+	public String toString() {												//
+		StringBuilder result = new StringBuilder(); 						//StringBuilder is a default class in java library.
+		for(int i = 0; i < this.numObjects; i++) {							//a loop which does not end until it reach the object limit in the array
+			result.append("[").append(oList[i].toString()).append("]\n");	//append method puts the character or string at the end of sequence																//This line of code append [ to the end than append toString() method of class Car after that and so on
+		}																	//
+		return result.toString(); 											//return and override toString() method in class Car
+	}																		//
+	/**
+	* <return arrays total element>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public int size() {			//
+		return this.numObjects;	//return numObjects of array
+	}							//
+	/**
+	* <return element>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public Comparable get(int index) {	//
+		return this.oList[index];		//return the specific element in the array
+	}									//
+	/**
+	* <dertermines if array is empty>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public boolean isEmpty() {			//
+		if(this.numObjects == 0) {		//Check if the array is empty
+			return true;				//
+		}								//
+		else {							//
+			return false;				//
+		}								//
+	}									//
+	/**
+	* <removes a specific element from the array>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public void remove(int index) {								//
+		for(int i = index; i < (this.numObjects - 1) ; i++) {	//remove a specific element from the array
+			this.oList[i] = this.oList[i+1];					//shifting everything to the left
+		}														//
+		this.oList[this.numObjects - 1] = null;					//declare last element to be null
+		this.numObjects--;										//decrement numObjects
+	}															//
+	/**
+	* <reset the curr>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public void reset() {	//
+		this.curr = -1;		//reset curr
+	}						//
+	/**
+	* <goes to the next element>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public Comparable next() {						//
+		if(hasNext()) {								//return the next element of the array
+			Comparable next = this.oList[curr + 1];	//
+			curr++;									//increment curr
+			return next;							//
+		}											//
+		else {										//
+			return null;							//
+		}											//
+	}												//
+	/**
+	* <determine if there is a next element>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public boolean hasNext() {			//
+		if(curr < this.numObjects -1) {	//Check to see if there any elements after
+			return true;				//
+		}								//
+		else {							//
+			return false;				//
+		}								//
+	}									//
+	/**
+	* <a remove iterator>
+	* 
+	* CSC 1351 Programming Project No <1>
+	* Section <2>
+	* 
+	* @author <Daniel Guo>
+	* @since <March 17, 2024>
+	*
+	*/
+	public void remove() {	//
+		remove(curr);		//iterator to remove an element
+	}						//
+	
+}//end of class aOrderedList
